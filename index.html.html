@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estrategia maestra de contenido Eico GDL</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffff;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        h2 {
+            display: none;
+        }
+        
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 0 0 24px;
+            border-bottom: 2px solid #e5e5e5;
+            margin-bottom: 24px;
+        }
+        
+        .nav button {
+            padding: 10px 18px;
+            border-radius: 24px;
+            border: 1px solid #d0d0d0;
+            background: #f8f8f8;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s ease;
+        }
+        
+        .nav button:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        
+        .nav button.on {
+            background: #1a1a1a;
+            color: #ffffff;
+            border-color: #1a1a1a;
+        }
+        
+        .pane {
+            display: none;
+        }
+        
+        .pane.on {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card {
+            background: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 18px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #bbb;
+        }
+        
+        .card h3 {
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            color: #1a1a1a;
+        }
+        
+        .card h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: #1a1a1a;
+        }
+        
+        .card p, .card li {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+            margin: 0 0 6px;
+        }
+        
+        .card ul {
+            margin: 8px 0 0 18px;
+            padding-left: 0;
+        }
+        
+        .card li {
+            margin-bottom: 8px;
+        }
+        
+        .tag {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            margin: 3px 3px 3px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .t-tofu {
+            background: #e1f5ee;
+            color: #0f6e56;
+            border: 1px solid #5dcaa5;
+        }
+        
+        .t-mofu {
+            background: #faeeda;
+            color: #854f0b;
+            border: 1px solid #ef9f27;
+        }
+        
+        .t-bofu {
+            background: #faece7;
+            color: #993c1d;
+            border: 1px solid #d85a30;
+        }
+        
+        .t-gray {
+            background: #f5f5f5;
+            color: #555;
+            border: 1px solid #d0d0d0;
+        }
+        
+        .t-blue {
+            background: #e6f1fb;
+            color: #0c447c;
+            border: 1px solid #85b7eb;
+        }
+        
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .grid3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid2, .grid3 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .day-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .day-head {
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #f5f5f5;
+            border-bottom: 1px solid #e5e5e5;
+            color: #1a1a1a;
+        }
+        
+        .day-body {
+            padding: 14px 16px;
+        }
+        
+        .day-body p {
+            font-size: 12px;
+            color: #555;
+            margin: 6px 0;
+            line-height: 1.5;
+        }
+        
+        .day-body strong {
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .embudo-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 0;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .emb-label {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .emb-label.t {
+            background: #e1f5ee;
+            border: 1px solid #5dcaa5;
+            color: #0f6e56;
+        }
+        
+        .emb-label.m {
+            background: #faeeda;
+            border: 1px solid #ef9f27;
+            color: #854f0b;
+        }
+        
+        .emb-label.b {
+            background: #faece7;
+            border: 1px solid #d85a30;
+            color: #993c1d;
+        }
+        
+        .emb-body {
+            border: 1px solid #ddd;
+            border-left: none;
+            padding: 16px;
+            background: #ffffff;
+        }
+        
+        .emb-body h4 {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 0 0 6px;
+            color: #1a1a1a;
+        }
+        
+        .emb-body p {
+            font-size: 13px;
+            color: #555;
+            margin: 0 0 8px;
+            line-height: 1.5;
+        }
+        
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        
+        .hook-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+        
+        .hook-card:hover {
+            background: #f8f8f8;
+            border-color: #999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .hook-card .formula {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 8px;
+        }
+        
+        .hook-card .ejemplo {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            line-height: 1.5;
+            font-style: italic;
+        }
+        
+        .hook-card .ej2 {
+            font-size: 12px;
+            color: #888;
+            margin: 4px 0 0;
+            line-height: 1.5;
+            font-style: italic;
+        }
+        
+        .idea-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e5e5e5;
+            cursor: pointer;
+            transition: background 0.2s;
+            background: #ffffff;
+        }
+        
+        .idea-item:hover {
+            background: #f8f8f8;
+        }
+        
+        .idea-item:last-child {
+            border-bottom: none;
+        }
+        
+        .idea-item .titulo {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0 0 4px;
+        }
+        
+        .idea-item .desc {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .filtros {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        
+        .filtro {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid #d0d0d0;
+            background: #f8f8f8;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.15s;
+        }
+        
+        .filtro:hover {
+            background: #f0f0f0;
+            border-color: #999;
+        }
+        
+        .filtro.on {
+            background: #1a1a1a;
+            color: #ffffff;
+            border-color: #1a1a1a;
+        }
+        
+        .seccion-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            margin: 18px 0 10px;
+        }
+        
+        .quote-block {
+            border-left: 3px solid #d85a30;
+            padding: 12px 16px;
+            margin: 10px 0;
+            background: #fafafa;
+            border-radius: 4px;
+        }
+        
+        .quote-block p {
+            font-size: 13px;
+            color: #1a1a1a;
+            font-style: italic;
+            margin: 0;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        
+        .generar-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            background: #f8f8f8;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1a1a1a;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        
+        .generar-btn:hover {
+            background: #e8e8e8;
+            border-color: #999;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #d0d0d0;
+            background: #ffffff;
+            color: #1a1a1a;
+            font-size: 13px;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+        
+        .resultado {
+            background: #f8f8f8;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 12px;
+            min-height: 60px;
+            font-size: 13px;
+            color: #1a1a1a;
+            line-height: 1.7;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #d0d0d0;
+            margin: 3px 3px 3px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h2>Estrategia maestra de contenido Eico GDL — identidad, embudo, calendario, banco de ideas y hooks replicables</h2>
+
+<div class="nav">
+  <button class="on" onclick="tab('identidad',this)">Identidad</button>
+  <button onclick="tab('audiencia',this)">Audiencia</button>
+  <button onclick="tab('embudo',this)">Embudo</button>
+  <button onclick="tab('calendario',this)">Calendario fijo</button>
+  <button onclick="tab('banco',this)">Banco de ideas</button>
+  <button onclick="tab('hooks',this)">Hooks replicables</button>
+  <button onclick="tab('fechas',this)">Fechas clave</button>
+</div>
+
+<div id="pane-identidad" class="pane on">
+  <div class="card">
+    <div class="seccion-title">Mision</div>
+    <div class="quote-block"><p>Ser el aliado mas rapido, resolutivo y cercano para oficinas y PyMEs de GDL que necesitan imprimir, equipar y resolver sin perder tiempo. Vendemos el producto correcto, orientamos al cliente y lo entregamos hoy.</p></div>
+  </div>
+  <div class="card">
+    <div class="seccion-title">Vision</div>
+    <div class="quote-block"><p>Ser la empresa de referencia en ZMG para insumos de oficina, impresion y soporte tecnico — conocida no solo por su precio, sino por su respuesta inmediata, su atencion humana y 28 anos de experiencia que ningun competidor puede copiar.</p></div>
+  </div>
+  <div class="card">
+    <div class="seccion-title">Idea fuerza (posicionamiento en una linea)</div>
+    <div class="quote-block"><p style="font-size:16px;font-weight:700;font-style:normal;color:#1a1a1a">\"Aquí si resolvemos.\"</p></div>
+    <p style="font-size:13px;margin-top:10px;color:#666;line-height:1.6\">No somos otro proveedor de cartuchos. Somos el aliado que aparece cuando la impresora falla, cuando no sabes que cartucho pedir, cuando necesitas que llegue hoy y no manana.</p>
+  </div>
+  <div class="seccion-title">Los 5 diferenciadores reales de Eico</div>
+  <div class="grid2">
+    <div class="card"><h3>28 años de historia</h3><p>Ningún competidor local tiene este aval. Es confianza acumulada que se transmite en cada post y en cada entrega.</p></div>
+    <div class="card"><h3>Orientación técnica real</h3><p>No solo vendemos: ayudamos al cliente a comprar lo correcto. Eso reduce devoluciones y genera lealtad.</p></div>
+    <div class="card"><h3>Entrega el mismo día en ZMG</h3><p>La urgencia del cliente es nuestra ventaja. Pedido antes de las 2pm = entrega hoy. Nadie más lo garantiza igual.</p></div>
+    <div class="card"><h3>Catálogo completo en un lugar</h3><p>Cartuchos, papelería, cómputo, mantenimiento, POS, materia prima. Un proveedor, un WhatsApp, todo resuelto.</p></div>
+    <div class="card" style="grid-column:1/-1"><h3>Atención humana + cercanía familiar</h3><p>No es un call center ni un chatbot. Es un equipo que conoce a sus clientes, recuerda sus equipos y responde de verdad. Eso no se automatiza.</p></div>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <div class="seccion-title">Tono de marca</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+      <span class="tag t-blue">Profesional cercano</span>
+      <span class="tag t-blue">Claro y directo</span>
+      <span class="tag t-blue">Resolutivo</span>
+      <span class="tag t-blue">Humano y cálido</span>
+      <span class="tag t-blue">Útil — no decorativo</span>
+      <span class="tag t-blue">Sin tecnicismos innecesarios</span>
+    </div>
+  </div>
+</div>
+
+<div id="pane-audiencia" class="pane">
+  <div class="seccion-title">Perfil principal</div>
+  <div class="grid2">
+    <div class="card"><h3>Quién es</h3><p>Adulto 30-55 años. Hombre o mujer. Administrativo, almacenista o encargado de compras de una PyME en ZMG. Nivel socioeconómico medio a medio-alto.</p></div>
+    <div class="card"><h3>Cómo piensa</h3><p>No es técnico. Se confunde con modelos de impresora. Teme comprar mal o que llegue tarde. Necesita que alguien le diga con seguridad: "este es el que te funciona."</p></div>
+    <div class="card"><h3>Qué dolor tiene</h3><p>La impresora falla justo cuando hay trabajo urgente. No sabe qué cartucho pedir. Quiere surtir la oficina rápido, sin buscar en 4 lugares distintos.</p></div>
+    <div class="card"><h3>Cómo decide</h3><p>Por recomendación, por confianza y por velocidad. Si le contestas rápido, lo atiendes bien y le entregas hoy — eres su proveedor para siempre.</p></div>
+  </div>
+  <div class="seccion-title">Perfiles secundarios</div>
+  <div class="grid3">
+    <div class="card"><h3>Pequeño distribuidor</h3><p>Revende cartuchos. Busca precio y surtido. Le interesa el catálogo mayorista y la materia prima para remanufactura.</p></div>
+    <div class="card"><h3>Particular con equipo en casa</h3><p>Imprime poco pero cuando necesita, urge. Prefiere pagar un poco más si le garantizan que es el correcto y llega rápido.</p></div>
+    <div class="card"><h3>Micro empresa / freelancer</h3><p>Trabaja desde casa o local pequeño. Valora la facturación y la atención directa. Suele ser cliente recurrente si lo fidelizas.</p></div>
+  </div>
+  <div class="card" style="margin-top:10px;">
+    <div class="seccion-title">Cómo nos encuentran hoy</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+      <span class="meta-chip">Recomendación boca a boca</span>
+      <span class="meta-chip">Clientes recurrentes</span>
+      <span class="meta-chip">WhatsApp directo</span>
+      <span class="meta-chip">Facebook e Instagram</span>
+      <span class="meta-chip">Mercado Libre</span>
+      <span class="meta-chip">Búsqueda local Google</span>
+    </div>
+    <p style="font-size:12px;margin-top:12px;color:#666;">Oportunidad clara: la mayoría llega por recomendación o canal directo. El contenido digital puede multiplicar ese alcance si le habla al cliente correcto con el mensaje correcto.</p>
+  </div>
+</div>
+
+<div id="pane-embudo" class="pane">
+  <p style="font-size:13px;color:#666;margin:0 0 16px;line-height:1.6;">Cada pieza de contenido tiene una función dentro del embudo. Publicar sin esta lógica es solo ruido. Con ella, cada post hace su trabajo.</p>
+
+  <div class="embudo-row">
+    <div class="emb-label t">
+      <div style="font-size:22px;font-weight:800">33%</div>
+      <div style="font-size:11px;font-weight:800;margin-top:4px">TOFU</div>
+    </div>
+    <div class="emb-body">
+      <h4>Atraer — "Esto me sirve"</h4>
+      <p>El cliente no nos conoce o no sabe que nos necesita. Le damos valor sin pedir nada: un tip, una guía, una comparativa honesta. El objetivo es que guarde, comparta o nos empiece a seguir.</p>
+      <div class="pill-row">
+        <span class="tag t-tofu">Guías paso a paso</span>
+        <span class="tag t-tofu">Tips de impresión</span>
+        <span class="tag t-tofu">Encuestas</span>
+        <span class="tag t-tofu">Errores comunes</span>
+        <span class="tag t-tofu">Comparativas honestas</span>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:#888;">Días: Lunes (historia) + Martes (feed) — siempre educativo, nunca comercial.</p>
+    </div>
+  </div>
+
+  <div class="embudo-row">
+    <div class="emb-label m">
+      <div style="font-size:22px;font-weight:800">33%</div>
+      <div style="font-size:11px;font-weight:800;margin-top:4px">MOFU</div>
+    </div>
+    <div class="emb-body">
+      <h4>Convencer — "Eico es diferente"</h4>
+      <p>El cliente ya sabe que existe el problema. Ahora necesita saber por qué elegirnos a nosotros. Mostramos proceso real, equipo, historia, casos de éxito y el catálogo completo. No vendemos precio — vendemos confianza.</p>
+      <div class="pill-row">
+        <span class="tag t-mofu">Detrás de cámaras</span>
+        <span class="tag t-mofu">Testimonios reales</span>
+        <span class="tag t-mofu">Catálogo con contexto</span>
+        <span class="tag t-mofu">28 años de historia</span>
+        <span class="tag t-mofu">Proceso de entrega</span>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:#888;">Días: Miércoles (historia) + Jueves semanas 1 y 3 (feed). El cliente que vio el martes, el miércoles ya nos recuerda.</p>
+    </div>
+  </div>
+
+  <div class="embudo-row">
+    <div class="emb-label b">
+      <div style="font-size:22px;font-weight:800">33%</div>
+      <div style="font-size:11px;font-weight:800;margin-top:4px">BOFU</div>
+    </div>
+    <div class="emb-body">
+      <h4>Convertir — "Escríbenos hoy"</h4>
+      <p>El cliente ya nos conoce y considera comprarnos. Ahora necesita un motivo concreto para actuar hoy. Oferta real, precio visible, urgencia honesta y CTA directo a WhatsApp. Nunca agresivo — siempre cálido y resolutivo.</p>
+      <div class="pill-row">
+        <span class="tag t-bofu">Oferta del viernes</span>
+        <span class="tag t-bofu">Precio visible</span>
+        <span class="tag t-bofu">Urgencia real</span>
+        <span class="tag t-bofu">CTA WhatsApp</span>
+        <span class="tag t-bofu">Stock limitado</span>
+      </div>
+      <p style="margin-top:10px;font-size:11px;color:#888;">Días: Viernes (historia — SIEMPRE) + Jueves semanas 2 y 4 (feed con precio y CTA).</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:10px;">
+    <h3>La lógica del embudo semana a semana</h3>
+    <p>Lunes y martes atraen nuevos. Miércoles calienta a quien ya nos vio. Jueves y viernes convierten al que ya está considerando. El ciclo se repite cada semana y cada mes suma más personas en cada etapa.</p>
+  </div>
+  <button class="generar-btn">Desarrollar una pieza del embudo con Atlas ↗</button>
+</div>
+
+<div id="pane-calendario" class="pane">
+  <p style="font-size:13px;color:#666;margin:0 0 16px;line-height:1.6;">Este es el calendario fijo y permanente de Eico. No cambia semana a semana — cambia el tema, no la estructura. Eso hace sostenible la producción.</p>
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+    <div class="day-card">
+      <div class="day-head">Lunes</div>
+      <div class="day-body">
+        <span class="tag t-gray" style="margin-bottom:6px;display:inline-block">Historia</span>
+        <span class="tag t-tofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">TOFU</span>
+        <p><strong>Serie:</strong> "Ya sabías?"</p>
+        <p><strong>Objetivo:</strong> Abrir semana con valor. Tip rápido o encuesta. Genera respuestas en DM.</p>
+        <p><strong>Duración:</strong> 5-10 seg o encuesta interactiva</p>
+        <p><strong>Tono:</strong> Útil, sorpresivo, breve</p>
+      </div>
+    </div>
+    <div class="day-card">
+      <div class="day-head">Martes</div>
+      <div class="day-body">
+        <span class="tag t-blue" style="margin-bottom:6px;display:inline-block">Feed</span>
+        <span class="tag t-tofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">TOFU</span>
+        <p><strong>Formato:</strong> Carrusel o Reel 30-60 seg</p>
+        <p><strong>Serie:</strong> "Guía rápida Eico"</p>
+        <p><strong>Objetivo:</strong> Alcance máximo. Contenido que se guarda y comparte. Entrada de nuevos.</p>
+        <p><strong>Tono:</strong> Educativo, honesto, paso a paso</p>
+      </div>
+    </div>
+    <div class="day-card">
+      <div class="day-head">Miércoles</div>
+      <div class="day-body">
+        <span class="tag t-gray" style="margin-bottom:6px;display:inline-block">Historia</span>
+        <span class="tag t-mofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">MOFU</span>
+        <p><strong>Serie:</strong> "Aquí si resolvemos"</p>
+        <p><strong>Objetivo:</strong> Humanizar Eico. Proceso, equipo, valores. Que el cliente nos recuerde como personas.</p>
+        <p><strong>Tono:</strong> Cálido, auténtico, sin producción elaborada</p>
+      </div>
+    </div>
+    <div class="day-card">
+      <div class="day-head">Jueves</div>
+      <div class="day-body">
+        <span class="tag t-blue" style="margin-bottom:6px;display:inline-block">Feed</span>
+        <span class="tag t-mofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">MOFU</span>
+        <span class="tag t-bofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">/ BOFU</span>
+        <p><strong>Serie:</strong> "Lo que tenemos para ti"</p>
+        <p><strong>Lógica:</strong> Sem 1 y 3 = MOFU (catálogo con contexto). Sem 2 y 4 = BOFU (precio + CTA directo).</p>
+        <p><strong>Tono:</strong> Visual, claro, concreto</p>
+      </div>
+    </div>
+    <div class="day-card">
+      <div class="day-head">Viernes</div>
+      <div class="day-body">
+        <span class="tag t-gray" style="margin-bottom:6px;display:inline-block">Historia</span>
+        <span class="tag t-bofu" style="margin-bottom:6px;display:inline-block;margin-left:4px">BOFU</span>
+        <p><strong>Serie:</strong> "Oferta del viernes"</p>
+        <p><strong>Regla de oro:</strong> SIEMPRE conversión. Oferta real, precio visible, urgencia honesta, CTA cálido a WhatsApp.</p>
+        <p><strong>Tono:</strong> Directo, urgente pero no agresivo</p>
+      </div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <h3>Reglas del calendario que no se rompen</h3>
+    <ul>
+      <li>El viernes SIEMPRE es BOFU. Sin excepción.</li>
+      <li>El martes SIEMPRE es TOFU educativo. Es el día de mayor alcance orgánico.</li>
+      <li>El jueves alterna MOFU/BOFU cada semana para no saturar con venta directa.</li>
+      <li>Nunca dos BOFU seguidos — el cliente se desconecta si solo ve precios.</li>
+      <li>El contenido de historias puede ser más espontáneo y raw. El feed requiere producción.</li>
+    </ul>
+  </div>
+</div>
+
+<div id="pane-banco" class="pane">
+  <p style="font-size:13px;color:#666;margin:0 0 12px;">Filtra por etapa o categoría. Cada idea incluye formato sugerido y ángulo editorial.</p>
+  <div class="filtros">
+    <button class="filtro on" onclick="filtrar('todo',this)">Todas</button>
+    <button class="filtro" onclick="filtrar('tofu',this)">TOFU</button>
+    <button class="filtro" onclick="filtrar('mofu',this)">MOFU</button>
+    <button class="filtro" onclick="filtrar('bofu',this)">BOFU</button>
+  </div>
+  <div id="banco-lista" style="border:1px solid #ddd;border-radius:8px;overflow:hidden;background:#ffffff;"></div>
+</div>
+
+<div id="pane-hooks" class="pane">
+  <p style="font-size:13px;color:#666;margin:0 0 16px;">6 fórmulas de hook que funcionan para Eico. Cada una activa un mecanismo psicológico diferente.</p>
+
+  <div class="hook-card" onclick="expandHook('h1')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span class="tag t-tofu">Dolor activado</span><span style="font-size:11px;color:#888;">TOFU / MOFU</span></div>
+    <div class="formula">Formula: "¿[Situación frustrante que vive el cliente]?"</div>
+    <div class="ejemplo">Ej 1: "¿Sigues pagando Office cada año?"</div>
+    <div class="ej2">Ej 2: "¿Tu impresora tira tinta pero igual dice que está vacía?"</div>
+    <div id="h1-extra" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e5e5e5;"></div>
+  </div>
+
+  <div class="hook-card" onclick="expandHook('h2')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span class="tag t-tofu">Dato sorpresa</span><span style="font-size:11px;color:#888;">TOFU</span></div>
+    <div class="formula">Formula: "El [número o dato] que nadie te dijo sobre [tema común]"</div>
+    <div class="ejemplo">Ej 1: "El error #2 lo comete el 80% de las oficinas"</div>
+    <div class="ej2">Ej 2: "¿Sabías que un toner puede imprimir hasta 3,000 hojas si lo usas bien?"</div>
+    <div id="h2-extra" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e5e5e5;"></div>
+  </div>
+
+  <div class="hook-card" onclick="expandHook('h3')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span class="tag t-mofu">Contraintuitivo</span><span style="font-size:11px;color:#888;">TOFU / MOFU</span></div>
+    <div class="formula">Formula: "No [creencia común]. [Verdad sorpresiva]."</div>
+    <div class="ejemplo">Ej 1: "No siempre el original es mejor. Depende de tu uso."</div>
+    <div class="ej2">Ej 2: "No necesitas comprar impresora nueva. Muchas fallas tienen solución en el día."</div>
+    <div id="h3-extra" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #e5e5e5;"></div>
+  </div>
+</div>
+
+<div id="pane-fechas" class="pane">
+  <p style="font-size:13px;color:#666;margin:0 0 16px;">Temporadas y fechas relevantes para planear campañas con anticipación.</p>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag t-bofu" style="margin-bottom:8px;display:inline-block">Mayo 2026 — activo ahora</span>
+      <h3>Mes de arranque</h3>
+      <p>Cierre del primer cuatrimestre. Oficinas reponen insumos. Oportunidad: campaña de stock + papelería. BOFU con precio especial por pedido mayor.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-mofu" style="margin-bottom:8px;display:inline-block">Jul-Ago</span>
+      <h3>Regreso a clases</h3>
+      <p>Impresoras se activan en casa y escuelas. Pico de demanda de cartuchos. Oportunidad TOFU: guía "prepara tu impresora para clases".</p>
+    </div>
+    <div class="card">
+      <span class="tag t-bofu" style="margin-bottom:8px;display:inline-block">Nov</span>
+      <h3>Buen Fin</h3>
+      <p>Mejor momento del año para BOFU agresivo. Equipo de cómputo, impresoras, software. Preparar campaña con 3 semanas de anticipación.</p>
+    </div>
+    <div class="card">
+      <span class="tag t-mofu" style="margin-bottom:8px;display:inline-block">Dic-Ene</span>
+      <h3>Cierre e inicio de año</h3>
+      <p>Empresas cierran contabilidad e imprimen. Luego en enero reabre y reponen todo. Dos picos: urgencia (dic) y reposición (ene).</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const bancoData=[
+  {etapa:'tofu',formato:'carrusel',titulo:'Como identificar el modelo de tu impresora',desc:'Carrusel paso a paso por marca. El más compartido del banco.'},
+  {etapa:'tofu',formato:'reel',titulo:'3 errores que arruinan tu impresora sin que lo sepas',desc:'Reel 45 seg. Error 1: no agitar el toner.'},
+  {etapa:'tofu',formato:'carrusel',titulo:'Original vs compatible: la guía honesta',desc:'Comparativa sin favoritismos. Eico vende ambos.'},
+  {etapa:'mofu',formato:'historia',titulo:'Detrás de cámaras: así preparamos tu pedido',desc:'3-5 frames del proceso real. La autenticidad es el valor.'},
+  {etapa:'mofu',formato:'reel',titulo:'Llamaron a las 11, entregamos a las 2pm',desc:'Reel mostrando el flujo completo.'},
+  {etapa:'bofu',formato:'historia',titulo:'Oferta del viernes — toner HP precio especial',desc:'Siempre viernes. Precio visible, urgencia real, sticker WA.'},
+];
+
+function renderBanco(filtro){
+  const lista=document.getElementById('banco-lista');
+  const items=filtro==='todo'?bancoData:bancoData.filter(i=>i.etapa===filtro);
+  if(!items.length){lista.innerHTML='<div style="padding:16px;font-size:13px;color:#888">Sin resultados para este filtro.</div>';return;}
+  lista.innerHTML=items.map((i,idx)=>`<div class="idea-item">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span class="tag t-${i.etapa}" style="font-size:10px">${i.etapa.toUpperCase()}</span>
+      <span class="tag t-gray" style="font-size:10px">${i.formato}</span>
+    </div>
+    <div class="titulo">${i.titulo}</div>
+    <div class="desc">${i.desc}</div>
+  </div>`).join('');
+}
+renderBanco('todo');
+
+function filtrar(f,btn){
+  document.querySelectorAll('.filtro').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderBanco(f);
+}
+
+function tab(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pane-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+function expandHook(id){
+  const ex=document.getElementById(id+'-extra');
+  if(ex){ex.style.display=ex.style.display==='none'?'block':'none';}
+}
+</script>
+
+</body>
+</html>
